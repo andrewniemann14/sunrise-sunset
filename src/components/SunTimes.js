@@ -8,21 +8,23 @@ function SunTimes({date, dateString, airport}) {
   const [sunrise, setSunrise] = useState(null); // local state
   const [sunset, setSunset] = useState(null);   // local state
 
-  const systemTimezoneOffset = date.getTimezoneOffset() / 60 * -1; // -6
-  // console.log(systemTimezoneOffset);
+  const systemTimezoneOffset = date.getTimezoneOffset() / 60 * -1; // -5
+  console.log(systemTimezoneOffset);
   
   
   useEffect(() => {
-    let locationTimezoneOffset = (airport.DST === 'A') ? airport.timeZone + 1 : airport.timeZone;
+    let locationTimezoneOffset = (airport.DST === 'A') ? airport.timeZone + 1 : airport.timeZone; // checks if it has DST. TODO: check date to see if DST is active
     let timezoneDifference = locationTimezoneOffset - systemTimezoneOffset;
-    console.log(timezoneDifference);
+    console.log(timezoneDifference); // 14 (Incheon is 9, we are currently -5)
+
     fetch(`https://api.sunrise-sunset.org/json?lat=${airport.latitude}&lng=${airport.longitude}&date=${dateString}&formatted=0`)
     .then(res => res.json())
     .then(data => {
-      console.log(data);
+      console.log(data); // sunrise at 21:39
       let sunrise = new Date(data.results.sunrise);
       let sunset = new Date(data.results.sunset);
-      setSunrise(((sunrise.getHours() + timezoneDifference) < 10 ? '0' : '') + (sunrise.getHours() + timezoneDifference) + ":" + 
+      // adds a 0 before single digit hours, and subtracts 24 from hours that go past 24 with the time zone adjustment
+      setSunrise((((sunrise.getHours() + timezoneDifference) < 10 ? '0' : '') + (sunrise.getHours() + timezoneDifference) > 24 ? (sunrise.getHours() + timezoneDifference) - 24 : (sunrise.getHours() + timezoneDifference)) + ":" + 
         (sunrise.getMinutes() < 10 ? '0' : '') + sunrise.getMinutes() + ":" + 
         (sunrise.getSeconds() < 10 ? '0' : '') + sunrise.getSeconds());
       setSunset(((sunset.getHours() + timezoneDifference) < 10 ? '0' : '') + (sunset.getHours() + timezoneDifference) + ":" + 
